@@ -1,0 +1,28 @@
+/*!
+ * Start Bootstrap - Shop Homepage (https://startbootstrap.com/template-overviews/shop-homepage)
+ * Copyright 2013-2019 Start Bootstrap
+ * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap-shop-homepage/blob/master/LICENSE)
+ */
+body {
+  padding-top: 56px;
+}
+
+.list-group .list-group-item {
+    padding-left: .75rem;
+}
+
+.list-group .list-group-item i {
+    margin-right: .25rem;
+}
+
+.list-second-level .list-group-item {
+    padding-left: 1.5rem;
+}
+
+.list-third-level .list-group-item {
+    padding-left: 3rem;
+}
+
+.list-group li.active a {
+    color: #fff;
+}

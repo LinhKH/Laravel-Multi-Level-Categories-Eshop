@@ -1,6 +1,7 @@
 <?php
 
 Route::get('/', 'HomeController@index')->name('index');
+Route::get('/test', 'HomeController@test')->name('test');
 
 Route::get('/home', function () {
     if (session('status')) {

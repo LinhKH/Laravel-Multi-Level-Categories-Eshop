@@ -25,6 +25,7 @@ class FrontPageComposer
             }
             $parentCategory->products_count = $parentCategory->childCategories->sum('products_count');
         }
+        // dd($this->frontCategories->toArray());
     }
 
     public function compose(View $view)

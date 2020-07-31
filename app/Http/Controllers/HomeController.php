@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Product;
 use App\ProductCategory;
 use Illuminate\Http\Request;
+use DB;
 
 class HomeController extends Controller
 {
@@ -16,6 +17,51 @@ class HomeController extends Controller
             ->get();
 
         return view('index', compact('products'));
+    }
+    public function test()
+    {
+        $frontCategories = ProductCategory::whereNull('category_id')->get()->toArray();
+
+        foreach ($frontCategories as $p_key => $parentCategory) {
+            $frontCategories[$p_key]['child_categories'] = $this->getChildCategorie($parentCategory['id']);
+            foreach ($frontCategories[$p_key]['child_categories'] as $p1_key => $parentCategory1) {
+                $frontCategories[$p_key]['child_categories'][$p1_key]['child_categories'] = $this->getChildCategorie($parentCategory1['id']);
+            }
+        }
+        foreach ($frontCategories as $parent_key => $value) {
+            $list_ids = [];
+            foreach ($frontCategories[$parent_key]['child_categories'] as $key => $value1) {
+                $list_ids = array_merge($list_ids,array_column($this->getChildren($value1['id']),'id'));
+                $frontCategories[$parent_key]['child_categories'][$key]['product_count'] = (int) $this->countProduct(array_column($this->getChildren($value1['id']),'id'));
+
+                foreach ($frontCategories[$parent_key]['child_categories'][$key]['child_categories']  as $key_1 => $value_1) {
+                    $frontCategories[$parent_key]['child_categories'][$key]['child_categories'][$key_1]['product_count'] = (int) $this->countProduct([$value_1['id']]);
+                    
+                }
+            }
+            $frontCategories[$parent_key]['product_count'] = (int) $this->countProduct($list_ids);
+        }
+
+        return $frontCategories;
+    }
+    public function getChildren($id)
+    {
+        $childCategories = ProductCategory::where('category_id',$id)->get()->toArray();
+        return $childCategories;
+    }
+    public function countProduct($list_ids)
+    {
+        $result = DB::table('product_product_category')
+        ->select(DB::raw('count(*) as _count'))
+        ->whereIn('product_product_category.product_category_id', $list_ids)
+        ->get()->toArray();
+        return $result[0]->_count;
+    }
+    public function getChildCategorie($id)
+    {
+        $childCategories = ProductCategory::where('category_id',$id)->get()->toArray();
+
+        return $childCategories;
     }
 
     public function category(ProductCategory $category, ProductCategory $childCategory = null, $childCategory2 = null)
@@ -35,18 +81,16 @@ class HomeController extends Controller
             $category->load('childCategories.childCategories');
             $ids = collect();
             $selectedCategories[] = $category->id;
-
+            
             foreach ($category->childCategories as $subCategory) {
                 $ids = $ids->merge($subCategory->childCategories->pluck('id'));
             }
         }
-
         $products = Product::whereHas('categories', function ($query) use ($ids) {
-                $query->whereIn('id', $ids);
-            })
-            ->with('categories.parentCategory.parentCategory')
-            ->paginate(9);
-
+            $query->whereIn('id', $ids);
+        })
+        ->with('categories.parentCategory.parentCategory')
+        ->paginate(9);
         return view('index', compact('products', 'selectedCategories'));
     }
 
